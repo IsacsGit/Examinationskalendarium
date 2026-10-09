@@ -40,10 +40,35 @@
     .badge-exam { background: rgba(239,68,68,0.2); color: #fca5a5; }
     .exam-sub { font-size: 12px; color: var(--text-muted); }
     .exam-date { text-align: right; font-size: 12px; font-variant-numeric: tabular-nums; }
+    
+    /* Kalender-stilar */
     .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 8px; }
     .cal-header { text-align: center; font-size: 11px; color: var(--text-muted); padding: 6px 0; }
     .cal-cell { min-height: 80px; background: rgba(255,255,255,0.015); border: 1px solid var(--border); border-radius: 4px; padding: 4px; font-size: 11px; display: flex; flex-direction: column; gap: 2px; }
-    .cal-cell.empty { background: transparent; border-color: transparent; }
+    
+    /* Dagar utanför aktuell månad */
+    .cal-cell.other-month {
+      opacity: 0.35;
+      border: 1px dashed var(--border);
+      background: rgba(255,255,255,0.005);
+    }
+    
+    /* Dagens datum */
+    .cal-cell.today {
+      border: 1px solid var(--primary);
+      background: rgba(59, 130, 246, 0.05);
+    }
+    .cal-cell.today .cell-num {
+      color: var(--primary);
+      font-weight: 700;
+    }
+
+    .cell-num {
+      display: inline-block;
+      margin-bottom: 2px;
+      font-size: 11px;
+    }
+
     .cal-pill { background: rgba(59, 130, 246, 0.15); border: 1px solid var(--primary); border-radius: 3px; font-size: 9px; padding: 2px 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer; }
     .cal-pill.is-exam { border-color: var(--exam-color); background: rgba(239, 68, 68, 0.25); color: #fca5a5; }
     .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.65); display: none; align-items: center; justify-content: center; z-index: 100; }
@@ -75,7 +100,7 @@
     </div>
 
     <div class="input-group">
-      <label>Google Calendar iCal-länk</label>
+      <label>iCal-länk</label>
       <input type="url" id="icsUrl" value="https://calendar.google.com/calendar/ical/60211rkeojdceiomp6e0omnp27437s6q%40import.calendar.google.com/public/basic.ics">
       <div style="display:flex; gap:8px; margin-top:8px;">
         <button class="btn btn-primary" id="syncBtn" onclick="syncSchedule()">Hämta / Uppdatera Schema</button>
@@ -184,21 +209,39 @@
     if(!url) return alert('Ange en URL');
 
     btn.disabled = true;
-    status.innerText = "Ansluter till Google Calendar...";
+    status.innerText = "Hämtar data...";
 
-    // Vi skickar genom allorigins raw för att komma runt CORS från webbläsaren
-    const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`;
+    const proxyEndpoints = [
+      `https://open-web-calendar.hosted.quelltext.eu/calendar.ics?url=${encodeURIComponent(url)}`,
+      `https://corsproxy.io/?${encodeURIComponent(url)}`,
+      `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`
+    ];
+
+    let icsContent = null;
+
+    for (let endpoint of proxyEndpoints) {
+      try {
+        status.innerText = "Ansluter...";
+        let res = await fetch(endpoint);
+        if (res.ok) {
+          let text = await res.text();
+          if (text && text.includes("BEGIN:VCALENDAR")) {
+            icsContent = text;
+            break;
+          }
+        }
+      } catch (e) {}
+    }
+
+    if (!icsContent) {
+      status.innerText = "Kunde inte hämta kalenderinnehåll.";
+      btn.disabled = false;
+      alert("Nätverksbegränsning: Webbläsaren kunde inte läsa länken just nu.");
+      return;
+    }
 
     try {
-      let res = await fetch(proxyUrl);
-      if(!res.ok) throw new Error("Kunde inte nå proxyn");
-      let text = await res.text();
-      
-      if(!text.includes("BEGIN:VCALENDAR")) {
-        throw new Error("Svaret var inte en giltig iCal-kalender");
-      }
-
-      const parsed = ICAL.parse(text);
+      const parsed = ICAL.parse(icsContent);
       const comp = new ICAL.Component(parsed);
       const vevents = comp.getAllSubcomponents('vevent');
       const keywords = ['prov', 'tenta', 'examination', 'redovisning', 'inlämning', 'dugga'];
@@ -229,8 +272,8 @@
       status.innerText = `Klart! Hittade ${vevents.length} poster (${count} nya tillagda).`;
       setTimeout(() => toggleSettings(), 1200);
     } catch(e) {
-      status.innerText = "Fel: " + e.message;
-      alert("Kunde inte hämta kalendern: " + e.message);
+      status.innerText = "Tolkningsfel: " + e.message;
+      alert("Fel vid tolkning av iCal-filen: " + e.message);
     } finally {
       btn.disabled = false;
     }
@@ -245,11 +288,16 @@
   function renderList() {
     const container = document.getElementById('listView');
     container.innerHTML = '';
-    const visible = getVisibleEvents();
-    document.getElementById('countInfo').innerText = `${visible.length} poster`;
+    
+    // Filtrera bort historiska datum: behåll från midnatt idag och framåt
+    const now = new Date();
+    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+
+    const visible = getVisibleEvents().filter(e => new Date(e.date).getTime() >= startOfToday);
+    document.getElementById('countInfo').innerText = `${visible.length} kommande`;
 
     if(visible.length === 0) {
-      container.innerHTML = '<div style="text-align:center; padding:40px; color:var(--text-muted); font-size:13px;">Inga händelser hittades. Klicka på Inställningar -> Hämta Schema!</div>';
+      container.innerHTML = '<div style="text-align:center; padding:40px; color:var(--text-muted); font-size:13px;">Inga kommande händelser.</div>';
       return;
     }
 
@@ -286,29 +334,55 @@
       grid.innerHTML += `<div class="cal-header">${d}</div>`;
     });
 
-    const firstDay = (new Date(y, m, 1).getDay() + 6) % 7;
+    const firstDayIndex = (new Date(y, m, 1).getDay() + 6) % 7;
     const daysInMonth = new Date(y, m + 1, 0).getDate();
+    const daysInPrevMonth = new Date(y, m, 0).getDate();
 
-    for(let i = 0; i < firstDay; i++) {
-      grid.innerHTML += '<div class="cal-cell empty"></div>';
-    }
+    const today = new Date();
+    const isCurrentYear = today.getFullYear() === y;
+    const isCurrentMonth = today.getMonth() === m;
+    const todayDate = today.getDate();
 
     const visible = getVisibleEvents();
 
-    for(let day = 1; day <= daysInMonth; day++) {
+    function createCell(dayNum, isOther, dateStr, isTodayCell) {
       const cell = document.createElement('div');
-      cell.className = 'cal-cell';
-      cell.innerHTML = `<span>${day}</span>`;
+      cell.className = `cal-cell ${isOther ? 'other-month' : ''} ${isTodayCell ? 'today' : ''}`;
+      cell.innerHTML = `<span class="cell-num">${dayNum}</span>`;
 
-      const dayStr = `${y}-${String(m+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
-      visible.filter(e => e.date.startsWith(dayStr)).forEach(e => {
+      visible.filter(e => e.date.startsWith(dateStr)).forEach(e => {
         const pill = document.createElement('div');
         pill.className = `cal-pill ${e.isExam ? 'is-exam' : ''}`;
         pill.innerText = e.title;
         pill.onclick = (ev) => { ev.stopPropagation(); openModal(e.id); };
         cell.appendChild(pill);
       });
-      grid.appendChild(cell);
+
+      return cell;
+    }
+
+    // 1. Fyll ut föregående månads sista dagar
+    for(let i = firstDayIndex - 1; i >= 0; i--) {
+      const dNum = daysInPrevMonth - i;
+      const prevD = new Date(y, m - 1, dNum);
+      const dStr = `${prevD.getFullYear()}-${String(prevD.getMonth()+1).padStart(2,'0')}-${String(dNum).padStart(2,'0')}`;
+      grid.appendChild(createCell(dNum, true, dStr, false));
+    }
+
+    // 2. Den aktuella månadens dagar
+    for(let day = 1; day <= daysInMonth; day++) {
+      const dStr = `${y}-${String(m+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+      const isToday = isCurrentYear && isCurrentMonth && day === todayDate;
+      grid.appendChild(createCell(day, false, dStr, isToday));
+    }
+
+    // 3. Fyll ut nästa månads första dagar till helt 7-kolumners rutnät
+    const totalCells = firstDayIndex + daysInMonth;
+    const nextDaysCount = (7 - (totalCells % 7)) % 7;
+    for(let day = 1; day <= nextDaysCount; day++) {
+      const nextD = new Date(y, m + 1, day);
+      const dStr = `${nextD.getFullYear()}-${String(nextD.getMonth()+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+      grid.appendChild(createCell(day, true, dStr, false));
     }
   }
 
@@ -365,9 +439,7 @@
     }
   }
 
-  // Körs vid start
   render();
 </script>
 </body>
 </html>
-// här är koden färdig på den absolut sista raden av koden varje gång.
