@@ -10,14 +10,14 @@
     <link href='https://cdn.jsdelivr.net/npm/@fullcalendar/daygrid@4.4.0/main.min.css' rel='stylesheet' />
     
     <style>
-        /* --- CSS Variabler & Grundstil (Inspirerad av-bilden) --- */
+        /* --- CSS Variabler & Grundstil (Inspirerad av bilden) --- */
         :root {
             --bg-app: #0c0e14;
             --bg-card: #11141d;
             --border-color: rgba(255, 255, 255, 0.12);
             --text-main: #f1f5f9;
             --text-muted: #94a3b8;
-            --accent-color: #3b82f6; /* Blå huvudfärg */
+            --accent-color: #3b82f6; /* Standard blå */
             --warning-color: #f59e0b;
             --danger-color: #ef4444;
             --font-stack: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
@@ -32,7 +32,7 @@
             height: 100vh;
             display: flex;
             flex-direction: column;
-            overflow: hidden; /* App-känsla */
+            overflow: hidden;
             font-size: 14px;
         }
 
@@ -82,7 +82,7 @@
             gap: 16px;
         }
 
-        /* --- Inställningspanel (Dold som standard) --- */
+        /* --- Inställningspanel --- */
         #settings-panel {
             display: none;
             background: var(--bg-card);
@@ -90,10 +90,8 @@
             border-radius: 12px;
             padding: 20px;
             margin-bottom: 4px;
-            animation: slideDown 0.3s ease;
+            flex-shrink: 0;
         }
-
-        @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
 
         .settings-group { margin-bottom: 16px; }
         .settings-group label { display: block; color: var(--text-muted); font-size: 12px; margin-bottom: 6px; }
@@ -108,11 +106,11 @@
             font-family: inherit;
         }
         
-        textarea { resize: vertical; font-family: monospace; font-size: 10px;}
+        textarea { resize: vertical; font-family: monospace; font-size: 10px; height: 80px;}
 
         .row { display: flex; gap: 10px; align-items: center; }
         
-        /* --- Vy-bytare (Knappar) --- */
+        /* --- Vy-bytare --- */
         .view-switcher {
             display: flex;
             background: var(--bg-card);
@@ -143,9 +141,9 @@
             color: var(--text-main);
         }
 
-        /* --- Listvy (Container) --- */
+        /* --- Listvy --- */
         #list-view {
-            display: none; /* Dold som standard */
+            display: none;
             flex-direction: column;
             gap: 8px;
             padding-bottom: 20px;
@@ -158,7 +156,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-left: 4px solid var(--accent-color); /* Standardfärg */
+            border-left: 4px solid var(--accent-color);
             box-shadow: 0 1px 3px rgba(0,0,0,0.2);
         }
 
@@ -173,32 +171,34 @@
             display: flex;
             gap: 6px;
             margin-top: 8px;
+            justify-content: flex-end;
         }
         
         .btn-sm {
-            padding: 3px 8px;
-            font-size: 10px;
+            padding: 4px 10px;
+            font-size: 11px;
             border-radius: 4px;
             border: none;
             cursor: pointer;
+            font-weight: 600;
         }
         .btn-edit { background: var(--warning-color); color: #000; }
         .btn-delete { background: var(--danger-color); color: #fff; }
 
-        /* --- Kalendervy (FullCalendar overrides för mörkt tema) --- */
+        /* --- Kalendervy (FullCalendar overrides) --- */
         #calendar-view {
-            display: none; /* Dold som standard */
+            display: none;
             height: 100%;
             background: var(--bg-card);
             border-radius: 12px;
             padding: 10px;
             border: 1px solid var(--border-color);
+            overflow: hidden;
         }
 
-        /* Anpassa FullCalendar till app-stilen */
         .fc-theme-standard .fc-scrollgrid { border-color: var(--border-color); }
         .fc-theme-standard td, .fc-theme-standard th { border-color: var(--border-color); }
-        .fc-theme-standard .fc-）：-widget-header { background: var(--bg-card); border-color: var(--border-color); }
+        .fc-theme-standard .fc-list-day-cushion { background: rgba(255,255,255,0.05); }
         .fc-h-event { border: none; background-color: var(--accent-color); color: #fff; border-radius: 4px; padding: 1px 3px;}
         
         .fc-daygrid-day-number, .fc-col-header-cell-cushion {
@@ -209,18 +209,19 @@
         }
         
         .fc-day-today { background: rgba(59, 130, 246, 0.1) !important; }
-        .fc-toolbar-title { font-size: 16px !important; font-weight: 700 !important; }
+        .fc-toolbar-title { font-size: 16px !important; font-weight: 700 !important; margin: 0 !important;}
         .fc-button { 
             background: var(--bg-app) !important; 
             border-color: var(--border-color) !important; 
             color: var(--text-main) !important; 
             text-transform: capitalize;
             font-size: 12px !important;
+            height: 32px;
         }
-        .fc-button:not(:disabled):active, .fc-button:not(:disabled):checked { background: var(--accent-color) !important; }
-        .fc-icon { font-size: 1.2em !important; }
+        .fc-button-primary:not(:disabled):active, .fc-button-primary:not(:disabled):checked { background: var(--accent-color) !important; border-color: var(--accent-color) !important;}
+        .fc-toolbar { flex-wrap: wrap; gap: 10px; }
 
-        /* --- Modal för redigering --- */
+        /* --- Modal --- */
         .modal-overlay {
             display: none;
             position: fixed;
@@ -254,12 +255,10 @@
         .btn-cancel { background: var(--bg-app); color: var(--text-muted); }
         .btn-save { background: var(--accent-color); color: white; }
 
-        /* Responsiv justering */
         @media (max-width: 450px) {
             .exam-card { flex-direction: column; align-items: flex-start; }
-            .exam-meta { text-align: left; margin-top: 8px; }
-            header h1 { font-size: 14px; }
-            .header-btn { padding: 5px 8px; font-size: 11px;}
+            .exam-meta { text-align: left; margin-top: 8px; width: 100%; }
+            .card-actions {justify-content: flex-start;}
         }
     </style>
 </head>
@@ -269,7 +268,6 @@
     <h1>Examinationskalendarium</h1>
     <div>
         <button class="header-btn" onclick="toggleSettings()">⚙️ Anpassa</button>
-        <button class="header-btn" onclick="getSchoolSchema()">🌐 Hämta Schema</button>
     </div>
 </header>
 
@@ -278,42 +276,37 @@
     <div id="settings-panel">
         <div class="row" style="justify-content: space-between; margin-bottom: 15px;">
             <h2 style="font-size: 14px;">Inställningar</h2>
-            <button style="background:none; border:none; color:var(--text-muted); cursor:pointer;" onclick="toggleSettings()">✕</button>
+            <button style="background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:18px;" onclick="toggleSettings()">×</button>
         </div>
         
         <div class="settings-group">
-            <label>Accentfärg (påverkar markeringar)</label>
-            <input type="color" id="color-picker" value="#3b82f6" onchange="updateTheme()">
+            <label>Accentfärg</label>
+            <input type="color" id="color-picker" value="#3b82f6" onchange="updateTheme(this.value)">
         </div>
         
         <div class="settings-group">
-            <label>1. Klistra in direktlänk till iCal (.ics) - OBS: Kräver CORS-proxy</label>
-            <input type="text" id="ical-url" placeholder="https://cloud.timeedit.net/...">
-        </div>
-        
-        <div class="settings-group">
-            <label>2. Eller klistra in rå .ics-data här</label>
-            <textarea id="ical-raw" rows="4" placeholder="BEGIN:VCALENDAR..."></textarea>
+            <label>Importera rå .ics-data (Klistra in hela innehållet)</label>
+            <textarea id="ical-raw" placeholder="BEGIN:VCALENDAR..."></textarea>
         </div>
         
         <div class="row">
-            <button onclick="manualImport()" class="btn-save" style="width:100%; padding: 10px;">Spara & Importera</button>
+            <button onclick="processIcalData()" class="btn-save" style="width:100%; padding: 10px;">Uppdatera Schema</button>
         </div>
         <p id="status-msg" style="font-size:11px; color: var(--warning-color); margin-top: 8px; text-align: center;"></p>
     </div>
 
     <!-- Vy-väljare -->
     <div class="view-switcher">
-        <button id="btn-list" class="view-btn active" onclick="switchView('list')">Kommande Tentor</button>
-        <button id="btn-calendar" class="view-btn" onclick="switchView('calendar')">Månadsvy</button>
+        <button id="btn-list" class="view-btn active" onclick="switchView('list')">Kommande</button>
+        <button id="btn-calendar" class="view-btn" onclick="switchView('calendar')">Månad</button>
     </div>
 
-    <!-- Behållare för Listvy -->
-    <div id="list-view" style="display: flex;">
-        <!-- Här fylls listan in av JS -->
+    <!-- Listvy -->
+    <div id="list-view">
+        <!-- JS fyller på här -->
     </div>
 
-    <!-- Behållare för Kalendervy -->
+    <!-- Kalendervy -->
     <div id="calendar-view">
         <div id="calendar"></div>
     </div>
@@ -325,7 +318,7 @@
         <h2>Redigera Tenta</h2>
         <input type="hidden" id="edit-id">
         <div class="form-group">
-            <label>Kursnamn / Titel</label>
+            <label>Titel</label>
             <input type="text" id="edit-summary" class="form-control">
         </div>
         <div class="row">
@@ -333,9 +326,21 @@
                 <label>Startdatum</label>
                 <input type="datetime-local" id="edit-start" class="form-control">
             </div>
-            <div class="form-group" style="flex:1;">
-                <label>Slutdatum</label>
-                <input type="datetime-local" id="edit-end" class="form-control">
-            </div>
         </div>
-        <
+        <div class="form-group">
+            <label>Plats / Info</label>
+            <input type="text" id="edit-location" class="form-control">
+        </div>
+        <div class="modal-actions">
+            <button class="btn-modal btn-cancel" onclick="closeModal()">Avbryt</button>
+            <button class="btn-modal btn-delete" onclick="deleteExam()">Ta bort</button>
+            <button class="btn-modal btn-save" onclick="saveExam()">Spara</button>
+        </div>
+    </div>
+</div>
+
+<!-- Bibliotek -->
+<script src='https://cdn.jsdelivr.net/npm/@fullcalendar/core@4.4.0/main.min.js'></script>
+<script src='https://cdn.jsdelivr.net/npm/@fullcalendar/daygrid@4.4.0/main.min.js'></script>
+<script src='https://cdn.jsdelivr.net/npm/@fullcalendar/interaction@4.4.0/main.min.js'></script>
+<script src='https://cdn.jsdelivr.net/npm/@fullcalendar/core@4.4.0/locales/sv
