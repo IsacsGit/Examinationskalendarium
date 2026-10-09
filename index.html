@@ -15,6 +15,8 @@
       --text-muted: #94a3b8;
       --primary: #3b82f6;
       --exam-color: #ef4444;
+      --holiday-bg: rgba(245, 158, 11, 0.08);
+      --holiday-border: rgba(245, 158, 11, 0.25);
     }
     body { background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; }
     header { background: var(--card); border-bottom: 1px solid var(--border); padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; }
@@ -31,7 +33,7 @@
     .panel.open { display: block; }
     .input-group { margin-bottom: 12px; }
     .input-group label { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 4px; }
-    input[type="text"], input[type="url"], input[type="datetime-local"] { width: 100%; background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 6px; color: #fff; padding: 8px; font-size: 13px; }
+    input[type="text"], input[type="url"], input[type="datetime-local"], input[type="date"] { width: 100%; background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 6px; color: #fff; padding: 8px; font-size: 13px; }
     .list-view { display: flex; flex-direction: column; gap: 8px; }
     .exam-item { background: var(--card); border: 1px solid var(--border); border-left: 4px solid var(--primary); border-radius: 8px; padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
     .exam-item.is-exam { border-left-color: var(--exam-color); background: rgba(239, 68, 68, 0.04); }
@@ -44,7 +46,7 @@
     /* Kalender-stilar */
     .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 8px; }
     .cal-header { text-align: center; font-size: 11px; color: var(--text-muted); padding: 6px 0; }
-    .cal-cell { min-height: 80px; background: rgba(255,255,255,0.015); border: 1px solid var(--border); border-radius: 4px; padding: 4px; font-size: 11px; display: flex; flex-direction: column; gap: 2px; }
+    .cal-cell { min-height: 85px; background: rgba(255,255,255,0.015); border: 1px solid var(--border); border-radius: 4px; padding: 4px; font-size: 11px; display: flex; flex-direction: column; gap: 2px; position: relative; }
     
     /* Dagar utanför aktuell månad */
     .cal-cell.other-month {
@@ -63,20 +65,43 @@
       font-weight: 700;
     }
 
-    .cell-num {
-      display: inline-block;
+    /* Lov/Ledighet stil i kalenderruta */
+    .cal-cell.holiday {
+      background-color: var(--holiday-bg);
+      background-image: repeating-linear-gradient(45deg, transparent, transparent 6px, rgba(245, 158, 11, 0.03) 6px, rgba(245, 158, 11, 0.03) 12px);
+      border-color: var(--holiday-border);
+    }
+    .holiday-tag {
+      font-size: 9px;
+      color: #fbbf24;
+      font-weight: 500;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
       margin-bottom: 2px;
+    }
+
+    .cell-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2px;
+    }
+    .cell-num {
       font-size: 11px;
     }
 
     .cal-pill { background: rgba(59, 130, 246, 0.15); border: 1px solid var(--primary); border-radius: 3px; font-size: 9px; padding: 2px 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer; }
     .cal-pill.is-exam { border-color: var(--exam-color); background: rgba(239, 68, 68, 0.25); color: #fca5a5; }
+    
     .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.65); display: none; align-items: center; justify-content: center; z-index: 100; }
     .modal-overlay.open { display: flex; }
-    .modal { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; width: 340px; }
+    .modal { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; width: 360px; }
     .modal h2 { font-size: 16px; margin-bottom: 14px; }
     .modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 14px; }
     .filter-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; font-size: 12px; color: var(--text-muted); }
+
+    .holiday-item { display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 6px; padding: 6px 10px; margin-bottom: 6px; font-size: 12px; }
   </style>
 </head>
 <body>
@@ -107,7 +132,29 @@
       </div>
     </div>
 
-    <div style="margin-top:16px;">
+    <hr style="border:0; border-top:1px solid var(--border); margin:16px 0;">
+
+    <div class="input-group">
+      <label style="color:#fbbf24;">Markera Lov / Ledighet</label>
+      <input type="text" id="holidayTitle" placeholder="T.ex. Höstlov, Sportlov..." style="margin-bottom:6px;">
+      <div style="display:flex; gap:6px;">
+        <div style="flex:1;">
+          <span style="font-size:10px; color:var(--text-muted);">Från</span>
+          <input type="date" id="holidayStart">
+        </div>
+        <div style="flex:1;">
+          <span style="font-size:10px; color:var(--text-muted);">Till och med</span>
+          <input type="date" id="holidayEnd">
+        </div>
+      </div>
+      <button class="btn btn-primary" style="margin-top:8px; width:100%;" onclick="addHoliday()">Lägg till lov</button>
+    </div>
+
+    <div id="holidayList" style="margin-top:10px;"></div>
+
+    <hr style="border:0; border-top:1px solid var(--border); margin:16px 0;">
+
+    <div>
       <button class="btn btn-danger" onclick="clearData()">Rensa allt lagrat schema</button>
     </div>
     <div id="statusMsg" style="font-size:12px; margin-top:10px; color:var(--text-muted);"></div>
@@ -132,26 +179,38 @@
   </div>
 </main>
 
+<!-- Redigeringsmodal -->
 <div class="modal-overlay" id="editModal">
   <div class="modal">
     <h2>Redigera Händelse</h2>
     <input type="hidden" id="editId">
+    
     <div class="input-group">
-      <label>Titel</label>
+      <label>Titel / Namn</label>
       <input type="text" id="editTitle">
     </div>
+
     <div class="input-group">
-      <label>Datum & Tid</label>
-      <input type="datetime-local" id="editDate">
-    </div>
-    <div class="input-group">
-      <label>Plats</label>
+      <label>Sal / Plats</label>
       <input type="text" id="editLoc">
     </div>
-    <div class="input-group" style="display:flex; align-items:center; gap:8px; margin-top:10px;">
+
+    <div style="display:flex; gap:8px;">
+      <div class="input-group" style="flex:1;">
+        <label>Starttid</label>
+        <input type="datetime-local" id="editStart">
+      </div>
+      <div class="input-group" style="flex:1;">
+        <label>Sluttid</label>
+        <input type="datetime-local" id="editEnd">
+      </div>
+    </div>
+
+    <div class="input-group" style="display:flex; align-items:center; gap:8px; margin-top:6px;">
       <input type="checkbox" id="editIsExam" style="width:auto;">
       <label for="editIsExam" style="margin:0; font-size:12px; text-transform:none; color:#fff;">Markera som examination / prov</label>
     </div>
+
     <div class="modal-actions">
       <button class="btn btn-danger" onclick="deleteItem()">Radera</button>
       <button class="btn" onclick="closeModal()">Avbryt</button>
@@ -162,11 +221,13 @@
 
 <script>
   let events = JSON.parse(localStorage.getItem('cal_events') || '[]');
+  let holidays = JSON.parse(localStorage.getItem('cal_holidays') || '[]');
   let onlyExamsView = false;
   let calDate = new Date();
 
   function save() {
     localStorage.setItem('cal_events', JSON.stringify(events));
+    localStorage.setItem('cal_holidays', JSON.stringify(holidays));
     render();
   }
 
@@ -184,6 +245,7 @@
 
   function toggleSettings() {
     document.getElementById('settingsPanel').classList.toggle('open');
+    renderHolidayList();
   }
 
   function toggleFilter() {
@@ -201,6 +263,63 @@
     render();
   }
 
+  /* Lov-hantering */
+  function addHoliday() {
+    const title = document.getElementById('holidayTitle').value.trim();
+    const start = document.getElementById('holidayStart').value;
+    const end = document.getElementById('holidayEnd').value;
+
+    if(!title || !start || !end) {
+      return alert('Fyll i namn, startdatum och slutdatum för lovet.');
+    }
+    if(new Date(start) > new Date(end)) {
+      return alert('Startdatum kan inte vara efter slutdatum.');
+    }
+
+    holidays.push({
+      id: '_' + Math.random().toString(36).substr(2, 9),
+      title: title,
+      start: start,
+      end: end
+    });
+
+    document.getElementById('holidayTitle').value = '';
+    document.getElementById('holidayStart').value = '';
+    document.getElementById('holidayEnd').value = '';
+
+    save();
+    renderHolidayList();
+  }
+
+  function deleteHoliday(id) {
+    holidays = holidays.filter(h => h.id !== id);
+    save();
+    renderHolidayList();
+  }
+
+  function renderHolidayList() {
+    const list = document.getElementById('holidayList');
+    if(!list) return;
+    list.innerHTML = '';
+    holidays.forEach(h => {
+      const item = document.createElement('div');
+      item.className = 'holiday-item';
+      item.innerHTML = `
+        <div>
+          <span style="color:#fbbf24; font-weight:600;">🌴 ${h.title}</span>
+          <span style="color:var(--text-muted); margin-left:6px;">(${h.start} till ${h.end})</span>
+        </div>
+        <button class="btn btn-danger" style="padding:2px 6px; font-size:10px;" onclick="deleteHoliday('${h.id}')">&times;</button>
+      `;
+      list.appendChild(item);
+    });
+  }
+
+  function getHolidayForDate(dateStr) {
+    return holidays.find(h => dateStr >= h.start && dateStr <= h.end);
+  }
+
+  /* iCal Sync */
   async function syncSchedule() {
     const btn = document.getElementById('syncBtn');
     const status = document.getElementById('statusMsg');
@@ -255,12 +374,16 @@
 
         const autoExam = keywords.some(k => (title + " " + desc).toLowerCase().includes(k));
 
+        const startDate = ev.startDate.toJSDate();
+        const endDate = ev.endDate ? ev.endDate.toJSDate() : new Date(startDate.getTime() + 60*60*1000);
+
         const existing = events.find(e => e.id === uid);
         if (!existing) {
           events.push({
             id: uid,
             title: title,
-            date: ev.startDate.toJSDate().toISOString(),
+            date: startDate.toISOString(),
+            endDate: endDate.toISOString(),
             location: ev.location || '–',
             isExam: autoExam
           });
@@ -289,7 +412,6 @@
     const container = document.getElementById('listView');
     container.innerHTML = '';
     
-    // Filtrera bort historiska datum: behåll från midnatt idag och framåt
     const now = new Date();
     const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
 
@@ -303,6 +425,11 @@
 
     visible.forEach(ex => {
       const d = new Date(ex.date);
+      const endD = ex.endDate ? new Date(ex.endDate) : null;
+      const timeStr = endD 
+        ? `${d.toLocaleTimeString('sv-SE', { hour:'2-digit', minute:'2-digit' })} – ${endD.toLocaleTimeString('sv-SE', { hour:'2-digit', minute:'2-digit' })}`
+        : d.toLocaleTimeString('sv-SE', { hour:'2-digit', minute:'2-digit' });
+
       const div = document.createElement('div');
       div.className = `exam-item ${ex.isExam ? 'is-exam' : ''}`;
       div.onclick = () => openModal(ex.id);
@@ -316,7 +443,7 @@
         </div>
         <div class="exam-date">
           <div>${d.toLocaleDateString('sv-SE', { weekday:'short', day:'numeric', month:'short' })}</div>
-          <div style="color:var(--text-muted)">${d.toLocaleTimeString('sv-SE', { hour:'2-digit', minute:'2-digit' })}</div>
+          <div style="color:var(--text-muted)">${timeStr}</div>
         </div>
       `;
       container.appendChild(div);
@@ -346,9 +473,16 @@
     const visible = getVisibleEvents();
 
     function createCell(dayNum, isOther, dateStr, isTodayCell) {
+      const holiday = getHolidayForDate(dateStr);
       const cell = document.createElement('div');
-      cell.className = `cal-cell ${isOther ? 'other-month' : ''} ${isTodayCell ? 'today' : ''}`;
-      cell.innerHTML = `<span class="cell-num">${dayNum}</span>`;
+      cell.className = `cal-cell ${isOther ? 'other-month' : ''} ${isTodayCell ? 'today' : ''} ${holiday ? 'holiday' : ''}`;
+      
+      let topHtml = `<div class="cell-top"><span class="cell-num">${dayNum}</span>`;
+      if(holiday) {
+        topHtml += `<span class="holiday-tag" title="${holiday.title}">🌴 ${holiday.title}</span>`;
+      }
+      topHtml += `</div>`;
+      cell.innerHTML = topHtml;
 
       visible.filter(e => e.date.startsWith(dateStr)).forEach(e => {
         const pill = document.createElement('div');
@@ -361,7 +495,7 @@
       return cell;
     }
 
-    // 1. Fyll ut föregående månads sista dagar
+    // 1. Föregående månads dagar
     for(let i = firstDayIndex - 1; i >= 0; i--) {
       const dNum = daysInPrevMonth - i;
       const prevD = new Date(y, m - 1, dNum);
@@ -369,14 +503,14 @@
       grid.appendChild(createCell(dNum, true, dStr, false));
     }
 
-    // 2. Den aktuella månadens dagar
+    // 2. Aktuell månads dagar
     for(let day = 1; day <= daysInMonth; day++) {
       const dStr = `${y}-${String(m+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
       const isToday = isCurrentYear && isCurrentMonth && day === todayDate;
       grid.appendChild(createCell(day, false, dStr, isToday));
     }
 
-    // 3. Fyll ut nästa månads första dagar till helt 7-kolumners rutnät
+    // 3. Nästa månads dagar
     const totalCells = firstDayIndex + daysInMonth;
     const nextDaysCount = (7 - (totalCells % 7)) % 7;
     for(let day = 1; day <= nextDaysCount; day++) {
@@ -394,15 +528,24 @@
     renderCal();
   }
 
+  function toLocalInputString(d) {
+    const pad = n => String(n).padStart(2, '0');
+    return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  }
+
   function openModal(id) {
     const ex = events.find(e => e.id === id);
     if(!ex) return;
     document.getElementById('editId').value = ex.id;
     document.getElementById('editTitle').value = ex.title;
-    const d = new Date(ex.date);
-    d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
-    document.getElementById('editDate').value = d.toISOString().slice(0,16);
     document.getElementById('editLoc').value = ex.location;
+    
+    const startD = new Date(ex.date);
+    document.getElementById('editStart').value = toLocalInputString(startD);
+
+    const endD = ex.endDate ? new Date(ex.endDate) : new Date(startD.getTime() + 60*60*1000);
+    document.getElementById('editEnd').value = toLocalInputString(endD);
+
     document.getElementById('editIsExam').checked = !!ex.isExam;
     document.getElementById('editModal').classList.add('open');
   }
@@ -415,9 +558,15 @@
     const id = document.getElementById('editId').value;
     const ex = events.find(e => e.id === id);
     if(ex) {
-      ex.title = document.getElementById('editTitle').value;
-      ex.date = new Date(document.getElementById('editDate').value).toISOString();
-      ex.location = document.getElementById('editLoc').value;
+      ex.title = document.getElementById('editTitle').value.trim() || 'Namnlös';
+      ex.location = document.getElementById('editLoc').value.trim() || '–';
+      
+      const startVal = document.getElementById('editStart').value;
+      const endVal = document.getElementById('editEnd').value;
+
+      if(startVal) ex.date = new Date(startVal).toISOString();
+      if(endVal) ex.endDate = new Date(endVal).toISOString();
+
       ex.isExam = document.getElementById('editIsExam').checked;
       save();
       closeModal();
@@ -432,9 +581,11 @@
   }
 
   function clearData() {
-    if(confirm('Rensa alla sparade lektioner och tentor?')) {
+    if(confirm('Rensa alla sparade lektioner, prov och lov?')) {
       events = [];
+      holidays = [];
       save();
+      renderHolidayList();
       toggleSettings();
     }
   }
