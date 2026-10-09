@@ -28,12 +28,19 @@
     .tabs { display: flex; gap: 4px; background: rgba(255,255,255,0.03); padding: 4px; border-radius: 8px; border: 1px solid var(--border); }
     .tab-btn { background: none; border: none; color: var(--text-muted); padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 500; }
     .tab-btn.active { background: var(--card); color: var(--text); border: 1px solid var(--border); }
-    main { flex: 1; padding: 20px; max-width: 900px; margin: 0 auto; width: 100%; }
+    main { flex: 1; padding: 20px; max-width: 1050px; margin: 0 auto; width: 100%; }
     .panel { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 16px; margin-bottom: 16px; display: none; }
     .panel.open { display: block; }
     .input-group { margin-bottom: 12px; }
     .input-group label { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 4px; }
-    input[type="text"], input[type="url"], input[type="datetime-local"], input[type="date"] { width: 100%; background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 6px; color: #fff; padding: 8px; font-size: 13px; }
+    input[type="text"], input[type="url"], input[type="date"], input[type="time"] { width: 100%; background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 6px; color: #fff; padding: 8px; font-size: 13px; }
+    
+    /* Layout för listvyn med sidopanel */
+    .list-layout { display: grid; grid-template-columns: 1fr 310px; gap: 16px; align-items: start; }
+    @media (max-width: 800px) {
+      .list-layout { grid-template-columns: 1fr; }
+    }
+
     .list-view { display: flex; flex-direction: column; gap: 8px; }
     .exam-item { background: var(--card); border: 1px solid var(--border); border-left: 4px solid var(--primary); border-radius: 8px; padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
     .exam-item.is-exam { border-left-color: var(--exam-color); background: rgba(239, 68, 68, 0.04); }
@@ -42,54 +49,29 @@
     .badge-exam { background: rgba(239,68,68,0.2); color: #fca5a5; }
     .exam-sub { font-size: 12px; color: var(--text-muted); }
     .exam-date { text-align: right; font-size: 12px; font-variant-numeric: tabular-nums; }
+
+    /* Nedräkningspanel */
+    .countdown-panel { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 14px; position: sticky; top: 16px; }
+    .countdown-header { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 12px; border-bottom: 1px solid var(--border); padding-bottom: 6px; }
+    .countdown-list { display: flex; flex-direction: column; gap: 8px; max-height: calc(100vh - 180px); overflow-y: auto; }
+    .countdown-item { background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border); border-radius: 6px; padding: 8px 10px; }
+    .countdown-item.is-exam { border-color: rgba(239, 68, 68, 0.3); background: rgba(239, 68, 68, 0.04); }
+    .countdown-title { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .countdown-time { font-size: 11px; color: var(--primary); font-weight: 500; margin-top: 2px; }
+    .countdown-item.is-exam .countdown-time { color: #fca5a5; }
     
     /* Kalender-stilar */
     .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 8px; }
     .cal-header { text-align: center; font-size: 11px; color: var(--text-muted); padding: 6px 0; }
     .cal-cell { min-height: 85px; background: rgba(255,255,255,0.015); border: 1px solid var(--border); border-radius: 4px; padding: 4px; font-size: 11px; display: flex; flex-direction: column; gap: 2px; position: relative; }
     
-    /* Dagar utanför aktuell månad */
-    .cal-cell.other-month {
-      opacity: 0.35;
-      border: 1px dashed var(--border);
-      background: rgba(255,255,255,0.005);
-    }
-    
-    /* Dagens datum */
-    .cal-cell.today {
-      border: 1px solid var(--primary);
-      background: rgba(59, 130, 246, 0.05);
-    }
-    .cal-cell.today .cell-num {
-      color: var(--primary);
-      font-weight: 700;
-    }
-
-    /* Lov/Ledighet stil i kalenderruta */
-    .cal-cell.holiday {
-      background-color: var(--holiday-bg);
-      background-image: repeating-linear-gradient(45deg, transparent, transparent 6px, rgba(245, 158, 11, 0.03) 6px, rgba(245, 158, 11, 0.03) 12px);
-      border-color: var(--holiday-border);
-    }
-    .holiday-tag {
-      font-size: 9px;
-      color: #fbbf24;
-      font-weight: 500;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      margin-bottom: 2px;
-    }
-
-    .cell-top {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 2px;
-    }
-    .cell-num {
-      font-size: 11px;
-    }
+    .cal-cell.other-month { opacity: 0.35; border: 1px dashed var(--border); background: rgba(255,255,255,0.005); }
+    .cal-cell.today { border: 1px solid var(--primary); background: rgba(59, 130, 246, 0.05); }
+    .cal-cell.today .cell-num { color: var(--primary); font-weight: 700; }
+    .cal-cell.holiday { background-color: var(--holiday-bg); background-image: repeating-linear-gradient(45deg, transparent, transparent 6px, rgba(245, 158, 11, 0.03) 6px, rgba(245, 158, 11, 0.03) 12px); border-color: var(--holiday-border); }
+    .holiday-tag { font-size: 9px; color: #fbbf24; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 2px; }
+    .cell-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px; }
+    .cell-num { font-size: 11px; }
 
     .cal-pill { background: rgba(59, 130, 246, 0.15); border: 1px solid var(--primary); border-radius: 3px; font-size: 9px; padding: 2px 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer; }
     .cal-pill.is-exam { border-color: var(--exam-color); background: rgba(239, 68, 68, 0.25); color: #fca5a5; }
@@ -100,7 +82,6 @@
     .modal h2 { font-size: 16px; margin-bottom: 14px; }
     .modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 14px; }
     .filter-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; font-size: 12px; color: var(--text-muted); }
-
     .holiday-item { display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 6px; padding: 6px 10px; margin-bottom: 6px; font-size: 12px; }
   </style>
 </head>
@@ -161,14 +142,23 @@
   </div>
 
   <div class="filter-bar">
-    <div>
-      Visa: 
-      <button class="btn" id="filterBtn" onclick="toggleFilter()" style="margin-left:4px;">Alla händelser</button>
+    <div style="display:flex; gap:8px; align-items:center;">
+      <button class="btn btn-primary" onclick="openNewModal()">+ Ny händelse</button>
+      <button class="btn" id="filterBtn" onclick="toggleFilter()">Alla händelser</button>
     </div>
     <div id="countInfo">0 händelser</div>
   </div>
 
-  <div id="listView" class="list-view"></div>
+  <!-- Listvy container med 2 kolumner -->
+  <div id="listViewWrapper" class="list-layout">
+    <div id="listView" class="list-view"></div>
+    <div class="countdown-panel">
+      <div class="countdown-header">⏳ Nedräkningar</div>
+      <div id="countdownList" class="countdown-list"></div>
+    </div>
+  </div>
+
+  <!-- Kalendervy container -->
   <div id="calView" style="display:none;">
     <div style="display:flex; justify-content: space-between; align-items:center; margin-bottom:12px;">
       <button class="btn" onclick="prevMonth()">&lt;</button>
@@ -179,10 +169,10 @@
   </div>
 </main>
 
-<!-- Redigeringsmodal -->
+<!-- Redigeringsmodal med strikt 24-timmars format -->
 <div class="modal-overlay" id="editModal">
   <div class="modal">
-    <h2>Redigera Händelse</h2>
+    <h2 id="modalHeading">Redigera Händelse</h2>
     <input type="hidden" id="editId">
     
     <div class="input-group">
@@ -195,14 +185,19 @@
       <input type="text" id="editLoc">
     </div>
 
+    <div class="input-group">
+      <label>Datum</label>
+      <input type="date" id="editDay">
+    </div>
+
     <div style="display:flex; gap:8px;">
       <div class="input-group" style="flex:1;">
-        <label>Starttid</label>
-        <input type="datetime-local" id="editStart">
+        <label>Starttid (24h)</label>
+        <input type="time" id="editStartTime" step="60" required>
       </div>
       <div class="input-group" style="flex:1;">
-        <label>Sluttid</label>
-        <input type="datetime-local" id="editEnd">
+        <label>Sluttid (24h)</label>
+        <input type="time" id="editEndTime" step="60" required>
       </div>
     </div>
 
@@ -212,7 +207,7 @@
     </div>
 
     <div class="modal-actions">
-      <button class="btn btn-danger" onclick="deleteItem()">Radera</button>
+      <button class="btn btn-danger" id="deleteBtn" onclick="deleteItem()">Radera</button>
       <button class="btn" onclick="closeModal()">Avbryt</button>
       <button class="btn btn-primary" onclick="saveItem()">Spara</button>
     </div>
@@ -258,7 +253,7 @@
   function setTab(tab) {
     document.getElementById('tabList').classList.toggle('active', tab === 'list');
     document.getElementById('tabCal').classList.toggle('active', tab === 'cal');
-    document.getElementById('listView').style.display = tab === 'list' ? 'flex' : 'none';
+    document.getElementById('listViewWrapper').style.display = tab === 'list' ? 'grid' : 'none';
     document.getElementById('calView').style.display = tab === 'cal' ? 'block' : 'none';
     render();
   }
@@ -269,24 +264,13 @@
     const start = document.getElementById('holidayStart').value;
     const end = document.getElementById('holidayEnd').value;
 
-    if(!title || !start || !end) {
-      return alert('Fyll i namn, startdatum och slutdatum för lovet.');
-    }
-    if(new Date(start) > new Date(end)) {
-      return alert('Startdatum kan inte vara efter slutdatum.');
-    }
+    if(!title || !start || !end) return alert('Fyll i alla fält för lovet.');
+    if(new Date(start) > new Date(end)) return alert('Startdatum kan inte vara efter slutdatum.');
 
-    holidays.push({
-      id: '_' + Math.random().toString(36).substr(2, 9),
-      title: title,
-      start: start,
-      end: end
-    });
-
+    holidays.push({ id: '_' + Math.random().toString(36).substr(2, 9), title, start, end });
     document.getElementById('holidayTitle').value = '';
     document.getElementById('holidayStart').value = '';
     document.getElementById('holidayEnd').value = '';
-
     save();
     renderHolidayList();
   }
@@ -319,12 +303,37 @@
     return holidays.find(h => dateStr >= h.start && dateStr <= h.end);
   }
 
+  /* Smart nedräknings-beräkning */
+  function getCountdownString(targetDate) {
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const target = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate());
+    
+    const diffTime = target - today;
+    const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+
+    if (diffDays === 0) return "Idag";
+    if (diffDays === 1) return "Imorgon";
+    if (diffDays < 7) return `${diffDays} dagar kvar`;
+
+    const months = Math.floor(diffDays / 30);
+    const remAfterMonths = diffDays % 30;
+    const weeks = Math.floor(remAfterMonths / 7);
+    const days = remAfterMonths % 7;
+
+    let parts = [];
+    if (months > 0) parts.push(`${months} ${months === 1 ? 'månad' : 'månader'}`);
+    if (weeks > 0) parts.push(`${weeks} ${weeks === 1 ? 'vecka' : 'veckor'}`);
+    if (days > 0 && months === 0) parts.push(`${days} ${days === 1 ? 'dag' : 'dagar'}`);
+
+    return parts.slice(0, 2).join(' & ') + ' kvar';
+  }
+
   /* iCal Sync */
   async function syncSchedule() {
     const btn = document.getElementById('syncBtn');
     const status = document.getElementById('statusMsg');
     let url = document.getElementById('icsUrl').value.trim();
-
     if(!url) return alert('Ange en URL');
 
     btn.disabled = true;
@@ -337,10 +346,8 @@
     ];
 
     let icsContent = null;
-
     for (let endpoint of proxyEndpoints) {
       try {
-        status.innerText = "Ansluter...";
         let res = await fetch(endpoint);
         if (res.ok) {
           let text = await res.text();
@@ -355,8 +362,7 @@
     if (!icsContent) {
       status.innerText = "Kunde inte hämta kalenderinnehåll.";
       btn.disabled = false;
-      alert("Nätverksbegränsning: Webbläsaren kunde inte läsa länken just nu.");
-      return;
+      return alert("Nätverksbegränsning: Kunde inte läsa länken just nu.");
     }
 
     try {
@@ -371,7 +377,6 @@
         const title = ev.summary || 'Lektion';
         const desc = ev.description || '';
         const uid = ev.uid || (title + ev.startDate.toJSDate().getTime());
-
         const autoExam = keywords.some(k => (title + " " + desc).toLowerCase().includes(k));
 
         const startDate = ev.startDate.toJSDate();
@@ -396,7 +401,7 @@
       setTimeout(() => toggleSettings(), 1200);
     } catch(e) {
       status.innerText = "Tolkningsfel: " + e.message;
-      alert("Fel vid tolkning av iCal-filen: " + e.message);
+      alert("Fel vid tolkning: " + e.message);
     } finally {
       btn.disabled = false;
     }
@@ -410,7 +415,9 @@
 
   function renderList() {
     const container = document.getElementById('listView');
+    const cdContainer = document.getElementById('countdownList');
     container.innerHTML = '';
+    cdContainer.innerHTML = '';
     
     const now = new Date();
     const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
@@ -420,6 +427,7 @@
 
     if(visible.length === 0) {
       container.innerHTML = '<div style="text-align:center; padding:40px; color:var(--text-muted); font-size:13px;">Inga kommande händelser.</div>';
+      cdContainer.innerHTML = '<div style="color:var(--text-muted); font-size:12px;">Inga aktiva nedräkningar.</div>';
       return;
     }
 
@@ -427,8 +435,8 @@
       const d = new Date(ex.date);
       const endD = ex.endDate ? new Date(ex.endDate) : null;
       const timeStr = endD 
-        ? `${d.toLocaleTimeString('sv-SE', { hour:'2-digit', minute:'2-digit' })} – ${endD.toLocaleTimeString('sv-SE', { hour:'2-digit', minute:'2-digit' })}`
-        : d.toLocaleTimeString('sv-SE', { hour:'2-digit', minute:'2-digit' });
+        ? `${d.toLocaleTimeString('sv-SE', { hour:'2-digit', minute:'2-digit', hour12:false })} – ${endD.toLocaleTimeString('sv-SE', { hour:'2-digit', minute:'2-digit', hour12:false })}`
+        : d.toLocaleTimeString('sv-SE', { hour:'2-digit', minute:'2-digit', hour12:false });
 
       const div = document.createElement('div');
       div.className = `exam-item ${ex.isExam ? 'is-exam' : ''}`;
@@ -447,6 +455,17 @@
         </div>
       `;
       container.appendChild(div);
+
+      // Skapa kort i nedräkningspanelen
+      const cdDiv = document.createElement('div');
+      cdDiv.className = `countdown-item ${ex.isExam ? 'is-exam' : ''}`;
+      cdDiv.style.cursor = 'pointer';
+      cdDiv.onclick = () => openModal(ex.id);
+      cdDiv.innerHTML = `
+        <div class="countdown-title">${ex.title}</div>
+        <div class="countdown-time">${getCountdownString(d)}</div>
+      `;
+      cdContainer.appendChild(cdDiv);
     });
   }
 
@@ -495,7 +514,6 @@
       return cell;
     }
 
-    // 1. Föregående månads dagar
     for(let i = firstDayIndex - 1; i >= 0; i--) {
       const dNum = daysInPrevMonth - i;
       const prevD = new Date(y, m - 1, dNum);
@@ -503,14 +521,12 @@
       grid.appendChild(createCell(dNum, true, dStr, false));
     }
 
-    // 2. Aktuell månads dagar
     for(let day = 1; day <= daysInMonth; day++) {
       const dStr = `${y}-${String(m+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
       const isToday = isCurrentYear && isCurrentMonth && day === todayDate;
       grid.appendChild(createCell(day, false, dStr, isToday));
     }
 
-    // 3. Nästa månads dagar
     const totalCells = firstDayIndex + daysInMonth;
     const nextDaysCount = (7 - (totalCells % 7)) % 7;
     for(let day = 1; day <= nextDaysCount; day++) {
@@ -528,23 +544,41 @@
     renderCal();
   }
 
-  function toLocalInputString(d) {
-    const pad = n => String(n).padStart(2, '0');
-    return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  /* Formathjälpare för 24h & datum */
+  const pad = n => String(n).padStart(2, '0');
+
+  function openNewModal() {
+    document.getElementById('modalHeading').innerText = "Ny Händelse";
+    document.getElementById('editId').value = "";
+    document.getElementById('editTitle').value = "";
+    document.getElementById('editLoc').value = "";
+    
+    const now = new Date();
+    document.getElementById('editDay').value = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}`;
+    document.getElementById('editStartTime').value = "08:30";
+    document.getElementById('editEndTime').value = "10:00";
+    document.getElementById('editIsExam').checked = false;
+    document.getElementById('deleteBtn').style.display = 'none';
+
+    document.getElementById('editModal').classList.add('open');
   }
 
   function openModal(id) {
     const ex = events.find(e => e.id === id);
     if(!ex) return;
+    document.getElementById('modalHeading').innerText = "Redigera Händelse";
+    document.getElementById('deleteBtn').style.display = 'block';
+
     document.getElementById('editId').value = ex.id;
     document.getElementById('editTitle').value = ex.title;
     document.getElementById('editLoc').value = ex.location;
     
     const startD = new Date(ex.date);
-    document.getElementById('editStart').value = toLocalInputString(startD);
-
     const endD = ex.endDate ? new Date(ex.endDate) : new Date(startD.getTime() + 60*60*1000);
-    document.getElementById('editEnd').value = toLocalInputString(endD);
+
+    document.getElementById('editDay').value = `${startD.getFullYear()}-${pad(startD.getMonth()+1)}-${pad(startD.getDate())}`;
+    document.getElementById('editStartTime').value = `${pad(startD.getHours())}:${pad(startD.getMinutes())}`;
+    document.getElementById('editEndTime').value = `${pad(endD.getHours())}:${pad(endD.getMinutes())}`;
 
     document.getElementById('editIsExam').checked = !!ex.isExam;
     document.getElementById('editModal').classList.add('open');
@@ -556,28 +590,49 @@
 
   function saveItem() {
     const id = document.getElementById('editId').value;
-    const ex = events.find(e => e.id === id);
-    if(ex) {
-      ex.title = document.getElementById('editTitle').value.trim() || 'Namnlös';
-      ex.location = document.getElementById('editLoc').value.trim() || '–';
-      
-      const startVal = document.getElementById('editStart').value;
-      const endVal = document.getElementById('editEnd').value;
+    const title = document.getElementById('editTitle').value.trim() || 'Namnlös';
+    const loc = document.getElementById('editLoc').value.trim() || '–';
+    const day = document.getElementById('editDay').value;
+    const sTime = document.getElementById('editStartTime').value;
+    const eTime = document.getElementById('editEndTime').value;
+    const isExam = document.getElementById('editIsExam').checked;
 
-      if(startVal) ex.date = new Date(startVal).toISOString();
-      if(endVal) ex.endDate = new Date(endVal).toISOString();
+    if(!day || !sTime || !eTime) return alert('Ange både datum, starttid och sluttid.');
 
-      ex.isExam = document.getElementById('editIsExam').checked;
-      save();
-      closeModal();
+    const startISO = new Date(`${day}T${sTime}:00`).toISOString();
+    const endISO = new Date(`${day}T${eTime}:00`).toISOString();
+
+    if(id) {
+      const ex = events.find(e => e.id === id);
+      if(ex) {
+        ex.title = title;
+        ex.location = loc;
+        ex.date = startISO;
+        ex.endDate = endISO;
+        ex.isExam = isExam;
+      }
+    } else {
+      events.push({
+        id: '_' + Math.random().toString(36).substr(2, 9),
+        title: title,
+        location: loc,
+        date: startISO,
+        endDate: endISO,
+        isExam: isExam
+      });
     }
+
+    save();
+    closeModal();
   }
 
   function deleteItem() {
     const id = document.getElementById('editId').value;
-    events = events.filter(e => e.id !== id);
-    save();
-    closeModal();
+    if(id) {
+      events = events.filter(e => e.id !== id);
+      save();
+      closeModal();
+    }
   }
 
   function clearData() {
