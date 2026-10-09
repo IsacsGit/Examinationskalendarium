@@ -14,12 +14,13 @@
       --text: #f1f5f9;
       --text-muted: #94a3b8;
       --primary: #3b82f6;
+      --exam-color: #ef4444;
     }
     body { background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; }
     header { background: var(--card); border-bottom: 1px solid var(--border); padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; }
-    h1 { font-size: 16px; font-weight: 600; letter-spacing: -0.01em; }
-    .btn { background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: var(--text); padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; }
-    .btn:hover { background: rgba(255,255,255,0.1); }
+    h1 { font-size: 16px; font-weight: 600; }
+    .btn { background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: var(--text); padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; transition: 0.15s; }
+    .btn:hover { background: rgba(255,255,255,0.12); }
     .btn-primary { background: var(--primary); border-color: transparent; }
     .btn-danger { background: #ef4444; border-color: transparent; }
     .tabs { display: flex; gap: 4px; background: rgba(255,255,255,0.03); padding: 4px; border-radius: 8px; border: 1px solid var(--border); }
@@ -30,23 +31,27 @@
     .panel.open { display: block; }
     .input-group { margin-bottom: 12px; }
     .input-group label { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 4px; }
-    input, textarea { width: 100%; background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 6px; color: #fff; padding: 8px; font-size: 13px; }
+    input[type="text"], input[type="url"], input[type="datetime-local"] { width: 100%; background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 6px; color: #fff; padding: 8px; font-size: 13px; }
     .list-view { display: flex; flex-direction: column; gap: 8px; }
-    .exam-item { background: var(--card); border: 1px solid var(--border); border-left: 3px solid var(--primary); border-radius: 8px; padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; transition: transform 0.15s ease; }
-    .exam-item:hover { transform: translateY(-1px); border-color: rgba(255,255,255,0.2); }
+    .exam-item { background: var(--card); border: 1px solid var(--border); border-left: 4px solid var(--primary); border-radius: 8px; padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+    .exam-item.is-exam { border-left-color: var(--exam-color); background: rgba(239, 68, 68, 0.04); }
     .exam-title { font-weight: 600; font-size: 14px; margin-bottom: 4px; }
+    .badge { font-size: 10px; padding: 2px 6px; border-radius: 4px; background: rgba(255,255,255,0.08); text-transform: uppercase; margin-left: 6px; }
+    .badge-exam { background: rgba(239,68,68,0.2); color: #fca5a5; }
     .exam-sub { font-size: 12px; color: var(--text-muted); }
     .exam-date { text-align: right; font-size: 12px; font-variant-numeric: tabular-nums; }
     .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 8px; }
     .cal-header { text-align: center; font-size: 11px; color: var(--text-muted); padding: 6px 0; }
-    .cal-cell { min-height: 70px; background: rgba(255,255,255,0.015); border: 1px solid var(--border); border-radius: 4px; padding: 4px; font-size: 11px; display: flex; flex-direction: column; gap: 2px; }
+    .cal-cell { min-height: 80px; background: rgba(255,255,255,0.015); border: 1px solid var(--border); border-radius: 4px; padding: 4px; font-size: 11px; display: flex; flex-direction: column; gap: 2px; }
     .cal-cell.empty { background: transparent; border-color: transparent; }
-    .cal-pill { background: rgba(59, 130, 246, 0.2); border: 1px solid var(--primary); border-radius: 3px; font-size: 9px; padding: 2px 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer; }
+    .cal-pill { background: rgba(59, 130, 246, 0.15); border: 1px solid var(--primary); border-radius: 3px; font-size: 9px; padding: 2px 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer; }
+    .cal-pill.is-exam { border-color: var(--exam-color); background: rgba(239, 68, 68, 0.25); color: #fca5a5; }
     .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.65); display: none; align-items: center; justify-content: center; z-index: 100; }
     .modal-overlay.open { display: flex; }
-    .modal { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; width: 340px; box-shadow: 0 16px 36px rgba(0,0,0,0.8); }
+    .modal { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; width: 340px; }
     .modal h2 { font-size: 16px; margin-bottom: 14px; }
     .modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 14px; }
+    .filter-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; font-size: 12px; color: var(--text-muted); }
   </style>
 </head>
 <body>
@@ -65,17 +70,30 @@
 <main>
   <div class="panel" id="settingsPanel">
     <div class="input-group">
-      <label>Primär accentfärg</label>
+      <label>Accentfärg</label>
       <input type="color" id="cfgColor" value="#3b82f6" onchange="changeColor(this.value)">
     </div>
+
     <div class="input-group">
-      <label>Klistra in iCal / .ics Data</label>
-      <textarea id="icsInput" rows="5" placeholder="BEGIN:VCALENDAR..."></textarea>
+      <label>Google Calendar iCal-länk</label>
+      <input type="url" id="icsUrl" value="https://calendar.google.com/calendar/ical/60211rkeojdceiomp6e0omnp27437s6q%40import.calendar.google.com/public/basic.ics">
+      <div style="display:flex; gap:8px; margin-top:8px;">
+        <button class="btn btn-primary" id="syncBtn" onclick="syncSchedule()">Hämta / Uppdatera Schema</button>
+      </div>
     </div>
-    <div style="display:flex; justify-content: space-between;">
-      <button class="btn btn-primary" onclick="parseICS()">Importera iCal</button>
-      <button class="btn btn-danger" onclick="clearData()">Töm all data</button>
+
+    <div style="margin-top:16px;">
+      <button class="btn btn-danger" onclick="clearData()">Rensa allt lagrat schema</button>
     </div>
+    <div id="statusMsg" style="font-size:12px; margin-top:10px; color:var(--text-muted);"></div>
+  </div>
+
+  <div class="filter-bar">
+    <div>
+      Visa: 
+      <button class="btn" id="filterBtn" onclick="toggleFilter()" style="margin-left:4px;">Alla händelser</button>
+    </div>
+    <div id="countInfo">0 händelser</div>
   </div>
 
   <div id="listView" class="list-view"></div>
@@ -91,7 +109,7 @@
 
 <div class="modal-overlay" id="editModal">
   <div class="modal">
-    <h2>Redigera Examination</h2>
+    <h2>Redigera Händelse</h2>
     <input type="hidden" id="editId">
     <div class="input-group">
       <label>Titel</label>
@@ -102,23 +120,28 @@
       <input type="datetime-local" id="editDate">
     </div>
     <div class="input-group">
-      <label>Plats / Sal</label>
+      <label>Plats</label>
       <input type="text" id="editLoc">
     </div>
+    <div class="input-group" style="display:flex; align-items:center; gap:8px; margin-top:10px;">
+      <input type="checkbox" id="editIsExam" style="width:auto;">
+      <label for="editIsExam" style="margin:0; font-size:12px; text-transform:none; color:#fff;">Markera som examination / prov</label>
+    </div>
     <div class="modal-actions">
-      <button class="btn btn-danger" onclick="deleteExam()">Radera</button>
+      <button class="btn btn-danger" onclick="deleteItem()">Radera</button>
       <button class="btn" onclick="closeModal()">Avbryt</button>
-      <button class="btn btn-primary" onclick="saveExam()">Spara</button>
+      <button class="btn btn-primary" onclick="saveItem()">Spara</button>
     </div>
   </div>
 </div>
 
 <script>
-  let exams = JSON.parse(localStorage.getItem('exams') || '[]');
+  let events = JSON.parse(localStorage.getItem('cal_events') || '[]');
+  let onlyExamsView = false;
   let calDate = new Date();
 
   function save() {
-    localStorage.setItem('exams', JSON.stringify(exams));
+    localStorage.setItem('cal_events', JSON.stringify(events));
     render();
   }
 
@@ -138,6 +161,13 @@
     document.getElementById('settingsPanel').classList.toggle('open');
   }
 
+  function toggleFilter() {
+    onlyExamsView = !onlyExamsView;
+    document.getElementById('filterBtn').innerText = onlyExamsView ? "Endast Examinationer" : "Alla händelser";
+    document.getElementById('filterBtn').style.borderColor = onlyExamsView ? "var(--exam-color)" : "var(--border)";
+    render();
+  }
+
   function setTab(tab) {
     document.getElementById('tabList').classList.toggle('active', tab === 'list');
     document.getElementById('tabCal').classList.toggle('active', tab === 'cal');
@@ -146,49 +176,94 @@
     render();
   }
 
-  function parseICS() {
-    const raw = document.getElementById('icsInput').value;
-    if(!raw) return alert('Klistra in giltig ICS-data först');
+  async function syncSchedule() {
+    const btn = document.getElementById('syncBtn');
+    const status = document.getElementById('statusMsg');
+    let url = document.getElementById('icsUrl').value.trim();
+
+    if(!url) return alert('Ange en URL');
+
+    btn.disabled = true;
+    status.innerText = "Ansluter till Google Calendar...";
+
+    // Vi skickar genom allorigins raw för att komma runt CORS från webbläsaren
+    const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`;
+
     try {
-      const parsed = ICAL.parse(raw);
+      let res = await fetch(proxyUrl);
+      if(!res.ok) throw new Error("Kunde inte nå proxyn");
+      let text = await res.text();
+      
+      if(!text.includes("BEGIN:VCALENDAR")) {
+        throw new Error("Svaret var inte en giltig iCal-kalender");
+      }
+
+      const parsed = ICAL.parse(text);
       const comp = new ICAL.Component(parsed);
       const vevents = comp.getAllSubcomponents('vevent');
+      const keywords = ['prov', 'tenta', 'examination', 'redovisning', 'inlämning', 'dugga'];
+
       let count = 0;
       vevents.forEach(v => {
         const ev = new ICAL.Event(v);
-        exams.push({
-          id: '_' + Math.random().toString(36).substr(2, 9),
-          title: ev.summary || 'Examination',
-          date: ev.startDate.toJSDate().toISOString(),
-          location: ev.location || '–'
-        });
-        count++;
+        const title = ev.summary || 'Lektion';
+        const desc = ev.description || '';
+        const uid = ev.uid || (title + ev.startDate.toJSDate().getTime());
+
+        const autoExam = keywords.some(k => (title + " " + desc).toLowerCase().includes(k));
+
+        const existing = events.find(e => e.id === uid);
+        if (!existing) {
+          events.push({
+            id: uid,
+            title: title,
+            date: ev.startDate.toJSDate().toISOString(),
+            location: ev.location || '–',
+            isExam: autoExam
+          });
+          count++;
+        }
       });
-      document.getElementById('icsInput').value = '';
-      toggleSettings();
+
       save();
-      alert(`Importerade ${count} händelser.`);
+      status.innerText = `Klart! Hittade ${vevents.length} poster (${count} nya tillagda).`;
+      setTimeout(() => toggleSettings(), 1200);
     } catch(e) {
-      alert('Kunde inte läsa iCal-data: ' + e.message);
+      status.innerText = "Fel: " + e.message;
+      alert("Kunde inte hämta kalendern: " + e.message);
+    } finally {
+      btn.disabled = false;
     }
+  }
+
+  function getVisibleEvents() {
+    return events
+      .filter(e => onlyExamsView ? e.isExam : true)
+      .sort((a,b) => new Date(a.date) - new Date(b.date));
   }
 
   function renderList() {
     const container = document.getElementById('listView');
     container.innerHTML = '';
-    const sorted = [...exams].sort((a,b) => new Date(a.date) - new Date(b.date));
-    if(sorted.length === 0) {
-      container.innerHTML = '<div style="text-align:center; padding:40px; color:var(--text-muted); font-size:13px;">Inga examinationer inlagda än.</div>';
+    const visible = getVisibleEvents();
+    document.getElementById('countInfo').innerText = `${visible.length} poster`;
+
+    if(visible.length === 0) {
+      container.innerHTML = '<div style="text-align:center; padding:40px; color:var(--text-muted); font-size:13px;">Inga händelser hittades. Klicka på Inställningar -> Hämta Schema!</div>';
       return;
     }
-    sorted.forEach(ex => {
+
+    visible.forEach(ex => {
       const d = new Date(ex.date);
       const div = document.createElement('div');
-      div.className = 'exam-item';
+      div.className = `exam-item ${ex.isExam ? 'is-exam' : ''}`;
       div.onclick = () => openModal(ex.id);
       div.innerHTML = `
         <div>
-          <div class="exam-title">${ex.title}</div>
+          <div class="exam-title">
+            ${ex.title}
+            ${ex.isExam ? '<span class="badge badge-exam">Examination</span>' : ''}
+          </div>
           <div class="exam-sub">Sal: ${ex.location}</div>
         </div>
         <div class="exam-date">
@@ -206,7 +281,7 @@
     const y = calDate.getFullYear();
     const m = calDate.getMonth();
     document.getElementById('calMonthTitle').innerText = new Date(y, m).toLocaleDateString('sv-SE', { month:'long', year:'numeric' }).toUpperCase();
-    
+
     ['Mån','Tis','Ons','Tor','Fre','Lör','Sön'].forEach(d => {
       grid.innerHTML += `<div class="cal-header">${d}</div>`;
     });
@@ -218,15 +293,17 @@
       grid.innerHTML += '<div class="cal-cell empty"></div>';
     }
 
+    const visible = getVisibleEvents();
+
     for(let day = 1; day <= daysInMonth; day++) {
       const cell = document.createElement('div');
       cell.className = 'cal-cell';
       cell.innerHTML = `<span>${day}</span>`;
-      
+
       const dayStr = `${y}-${String(m+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
-      exams.filter(e => e.date.startsWith(dayStr)).forEach(e => {
+      visible.filter(e => e.date.startsWith(dayStr)).forEach(e => {
         const pill = document.createElement('div');
-        pill.className = 'cal-pill';
+        pill.className = `cal-pill ${e.isExam ? 'is-exam' : ''}`;
         pill.innerText = e.title;
         pill.onclick = (ev) => { ev.stopPropagation(); openModal(e.id); };
         cell.appendChild(pill);
@@ -244,7 +321,7 @@
   }
 
   function openModal(id) {
-    const ex = exams.find(e => e.id === id);
+    const ex = events.find(e => e.id === id);
     if(!ex) return;
     document.getElementById('editId').value = ex.id;
     document.getElementById('editTitle').value = ex.title;
@@ -252,6 +329,7 @@
     d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
     document.getElementById('editDate').value = d.toISOString().slice(0,16);
     document.getElementById('editLoc').value = ex.location;
+    document.getElementById('editIsExam').checked = !!ex.isExam;
     document.getElementById('editModal').classList.add('open');
   }
 
@@ -259,33 +337,35 @@
     document.getElementById('editModal').classList.remove('open');
   }
 
-  function saveExam() {
+  function saveItem() {
     const id = document.getElementById('editId').value;
-    const ex = exams.find(e => e.id === id);
+    const ex = events.find(e => e.id === id);
     if(ex) {
       ex.title = document.getElementById('editTitle').value;
       ex.date = new Date(document.getElementById('editDate').value).toISOString();
       ex.location = document.getElementById('editLoc').value;
+      ex.isExam = document.getElementById('editIsExam').checked;
       save();
       closeModal();
     }
   }
 
-  function deleteExam() {
+  function deleteItem() {
     const id = document.getElementById('editId').value;
-    exams = exams.filter(e => e.id !== id);
+    events = events.filter(e => e.id !== id);
     save();
     closeModal();
   }
 
   function clearData() {
-    if(confirm('Vill du rensa alla sparade tentor?')) {
-      exams = [];
+    if(confirm('Rensa alla sparade lektioner och tentor?')) {
+      events = [];
       save();
       toggleSettings();
     }
   }
 
+  // Körs vid start
   render();
 </script>
 </body>
