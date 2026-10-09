@@ -1,346 +1,293 @@
 <!DOCTYPE html>
 <html lang="sv">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Examinationskalendarium</title>
-
-    <!-- FullCalendar CSS (Dark Theme) -->
-    <link href='https://cdn.jsdelivr.net/npm/@fullcalendar/core@4.4.0/main.min.css' rel='stylesheet' />
-    <link href='https://cdn.jsdelivr.net/npm/@fullcalendar/daygrid@4.4.0/main.min.css' rel='stylesheet' />
-    
-    <style>
-        /* --- CSS Variabler & Grundstil (Inspirerad av bilden) --- */
-        :root {
-            --bg-app: #0c0e14;
-            --bg-card: #11141d;
-            --border-color: rgba(255, 255, 255, 0.12);
-            --text-main: #f1f5f9;
-            --text-muted: #94a3b8;
-            --accent-color: #3b82f6; /* Standard blå */
-            --warning-color: #f59e0b;
-            --danger-color: #ef4444;
-            --font-stack: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
-        }
-
-        * { box-sizing: border-box; margin: 0; padding: 0; outline: none; }
-
-        body {
-            font-family: var(--font-stack);
-            background-color: var(--bg-app);
-            color: var(--text-main);
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-            font-size: 14px;
-        }
-
-        /* --- Header --- */
-        header {
-            background: var(--bg-card);
-            border-bottom: 1px solid var(--border-color);
-            height: 56px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0 16px;
-            flex-shrink: 0;
-            z-index: 100;
-        }
-
-        header h1 {
-            font-size: 16px;
-            font-weight: 700;
-            letter-spacing: -0.02em;
-        }
-
-        .header-btn {
-            background: transparent;
-            border: 1px solid var(--border-color);
-            color: var(--text-muted);
-            padding: 6px 12px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 12px;
-            margin-left: 8px;
-            transition: all 0.2s;
-        }
-
-        .header-btn:hover {
-            background: rgba(255,255,255,0.05);
-            color: var(--text-main);
-        }
-
-        /* --- Main Content Area --- */
-        main {
-            flex: 1;
-            overflow-y: auto;
-            padding: 16px;
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-        }
-
-        /* --- Inställningspanel --- */
-        #settings-panel {
-            display: none;
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 4px;
-            flex-shrink: 0;
-        }
-
-        .settings-group { margin-bottom: 16px; }
-        .settings-group label { display: block; color: var(--text-muted); font-size: 12px; margin-bottom: 6px; }
-        
-        input[type="text"], input[type="color"], textarea {
-            width: 100%;
-            background: #0c0e14;
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            padding: 8px;
-            color: var(--text-main);
-            font-family: inherit;
-        }
-        
-        textarea { resize: vertical; font-family: monospace; font-size: 10px; height: 80px;}
-
-        .row { display: flex; gap: 10px; align-items: center; }
-        
-        /* --- Vy-bytare --- */
-        .view-switcher {
-            display: flex;
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 3px;
-            width: 100%;
-            max-width: 300px;
-            margin: 0 auto;
-            flex-shrink: 0;
-        }
-
-        .view-btn {
-            flex: 1;
-            background: transparent;
-            border: none;
-            color: var(--text-muted);
-            padding: 6px 0;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 12px;
-            transition: background 0.2s, color 0.2s;
-        }
-
-        .view-btn.active {
-            background: rgba(255, 255, 255, 0.08);
-            color: var(--text-main);
-        }
-
-        /* --- Listvy --- */
-        #list-view {
-            display: none;
-            flex-direction: column;
-            gap: 8px;
-            padding-bottom: 20px;
-        }
-
-        .exam-card {
-            background: var(--bg-card);
-            border-radius: 8px;
-            padding: 12px 16px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-left: 4px solid var(--accent-color);
-            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
-        }
-
-        .exam-details h3 { font-size: 15px; font-weight: 600; margin-bottom: 2px; }
-        .exam-details p { font-size: 12px; color: var(--text-muted); }
-        
-        .exam-meta { text-align: right; }
-        .exam-date { font-size: 14px; font-weight: 700; color: var(--accent-color); }
-        .exam-time { font-size: 11px; color: var(--text-muted); margin-top: 1px;}
-
-        .card-actions {
-            display: flex;
-            gap: 6px;
-            margin-top: 8px;
-            justify-content: flex-end;
-        }
-        
-        .btn-sm {
-            padding: 4px 10px;
-            font-size: 11px;
-            border-radius: 4px;
-            border: none;
-            cursor: pointer;
-            font-weight: 600;
-        }
-        .btn-edit { background: var(--warning-color); color: #000; }
-        .btn-delete { background: var(--danger-color); color: #fff; }
-
-        /* --- Kalendervy (FullCalendar overrides) --- */
-        #calendar-view {
-            display: none;
-            height: 100%;
-            background: var(--bg-card);
-            border-radius: 12px;
-            padding: 10px;
-            border: 1px solid var(--border-color);
-            overflow: hidden;
-        }
-
-        .fc-theme-standard .fc-scrollgrid { border-color: var(--border-color); }
-        .fc-theme-standard td, .fc-theme-standard th { border-color: var(--border-color); }
-        .fc-theme-standard .fc-list-day-cushion { background: rgba(255,255,255,0.05); }
-        .fc-h-event { border: none; background-color: var(--accent-color); color: #fff; border-radius: 4px; padding: 1px 3px;}
-        
-        .fc-daygrid-day-number, .fc-col-header-cell-cushion {
-            color: var(--text-main);
-            font-size: 12px;
-            text-decoration: none;
-            font-weight: 600;
-        }
-        
-        .fc-day-today { background: rgba(59, 130, 246, 0.1) !important; }
-        .fc-toolbar-title { font-size: 16px !important; font-weight: 700 !important; margin: 0 !important;}
-        .fc-button { 
-            background: var(--bg-app) !important; 
-            border-color: var(--border-color) !important; 
-            color: var(--text-main) !important; 
-            text-transform: capitalize;
-            font-size: 12px !important;
-            height: 32px;
-        }
-        .fc-button-primary:not(:disabled):active, .fc-button-primary:not(:disabled):checked { background: var(--accent-color) !important; border-color: var(--accent-color) !important;}
-        .fc-toolbar { flex-wrap: wrap; gap: 10px; }
-
-        /* --- Modal --- */
-        .modal-overlay {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.7);
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
-            backdrop-filter: blur(3px);
-        }
-
-        .modal-content {
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 20px;
-            width: 90%;
-            max-width: 400px;
-            animation: popIn 0.3s ease;
-        }
-
-        @keyframes popIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-        
-        .modal-content h2 { font-size: 18px; margin-bottom: 16px; }
-        .form-group { margin-bottom: 12px; }
-        .form-group label { display: block; color: var(--text-muted); font-size: 12px; margin-bottom: 4px; }
-        .form-control { width: 100%; background: var(--bg-app); border: 1px solid var(--border-color); border-radius: 6px; padding: 8px; color: var(--text-main); font-size: 14px;}
-
-        .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
-        .btn-modal { padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600; border: none; }
-        .btn-cancel { background: var(--bg-app); color: var(--text-muted); }
-        .btn-save { background: var(--accent-color); color: white; }
-
-        @media (max-width: 450px) {
-            .exam-card { flex-direction: column; align-items: flex-start; }
-            .exam-meta { text-align: left; margin-top: 8px; width: 100%; }
-            .card-actions {justify-content: flex-start;}
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Examinationskalendarium</title>
+  <script src="https://cdn.jsdelivr.net/npm/ical.js@1.5.0/build/ical.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    :root {
+      --bg: #0c0e14;
+      --card: #11141d;
+      --border: rgba(255, 255, 255, 0.08);
+      --text: #f1f5f9;
+      --text-muted: #94a3b8;
+      --primary: #3b82f6;
+    }
+    body { background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; }
+    header { background: var(--card); border-bottom: 1px solid var(--border); padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; }
+    h1 { font-size: 16px; font-weight: 600; letter-spacing: -0.01em; }
+    .btn { background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: var(--text); padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; }
+    .btn:hover { background: rgba(255,255,255,0.1); }
+    .btn-primary { background: var(--primary); border-color: transparent; }
+    .btn-danger { background: #ef4444; border-color: transparent; }
+    .tabs { display: flex; gap: 4px; background: rgba(255,255,255,0.03); padding: 4px; border-radius: 8px; border: 1px solid var(--border); }
+    .tab-btn { background: none; border: none; color: var(--text-muted); padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 500; }
+    .tab-btn.active { background: var(--card); color: var(--text); border: 1px solid var(--border); }
+    main { flex: 1; padding: 20px; max-width: 900px; margin: 0 auto; width: 100%; }
+    .panel { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 16px; margin-bottom: 16px; display: none; }
+    .panel.open { display: block; }
+    .input-group { margin-bottom: 12px; }
+    .input-group label { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 4px; }
+    input, textarea { width: 100%; background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 6px; color: #fff; padding: 8px; font-size: 13px; }
+    .list-view { display: flex; flex-direction: column; gap: 8px; }
+    .exam-item { background: var(--card); border: 1px solid var(--border); border-left: 3px solid var(--primary); border-radius: 8px; padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; transition: transform 0.15s ease; }
+    .exam-item:hover { transform: translateY(-1px); border-color: rgba(255,255,255,0.2); }
+    .exam-title { font-weight: 600; font-size: 14px; margin-bottom: 4px; }
+    .exam-sub { font-size: 12px; color: var(--text-muted); }
+    .exam-date { text-align: right; font-size: 12px; font-variant-numeric: tabular-nums; }
+    .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 8px; }
+    .cal-header { text-align: center; font-size: 11px; color: var(--text-muted); padding: 6px 0; }
+    .cal-cell { min-height: 70px; background: rgba(255,255,255,0.015); border: 1px solid var(--border); border-radius: 4px; padding: 4px; font-size: 11px; display: flex; flex-direction: column; gap: 2px; }
+    .cal-cell.empty { background: transparent; border-color: transparent; }
+    .cal-pill { background: rgba(59, 130, 246, 0.2); border: 1px solid var(--primary); border-radius: 3px; font-size: 9px; padding: 2px 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer; }
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.65); display: none; align-items: center; justify-content: center; z-index: 100; }
+    .modal-overlay.open { display: flex; }
+    .modal { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; width: 340px; box-shadow: 0 16px 36px rgba(0,0,0,0.8); }
+    .modal h2 { font-size: 16px; margin-bottom: 14px; }
+    .modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 14px; }
+  </style>
 </head>
 <body>
 
 <header>
-    <h1>Examinationskalendarium</h1>
-    <div>
-        <button class="header-btn" onclick="toggleSettings()">⚙️ Anpassa</button>
+  <h1>Examinationskalendarium</h1>
+  <div style="display:flex; gap: 8px;">
+    <div class="tabs">
+      <button class="tab-btn active" id="tabList" onclick="setTab('list')">Lista</button>
+      <button class="tab-btn" id="tabCal" onclick="setTab('cal')">Månad</button>
     </div>
+    <button class="btn" onclick="toggleSettings()">⚙ Inställningar</button>
+  </div>
 </header>
 
 <main>
-    <!-- Inställningspanel -->
-    <div id="settings-panel">
-        <div class="row" style="justify-content: space-between; margin-bottom: 15px;">
-            <h2 style="font-size: 14px;">Inställningar</h2>
-            <button style="background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:18px;" onclick="toggleSettings()">×</button>
-        </div>
-        
-        <div class="settings-group">
-            <label>Accentfärg</label>
-            <input type="color" id="color-picker" value="#3b82f6" onchange="updateTheme(this.value)">
-        </div>
-        
-        <div class="settings-group">
-            <label>Importera rå .ics-data (Klistra in hela innehållet)</label>
-            <textarea id="ical-raw" placeholder="BEGIN:VCALENDAR..."></textarea>
-        </div>
-        
-        <div class="row">
-            <button onclick="processIcalData()" class="btn-save" style="width:100%; padding: 10px;">Uppdatera Schema</button>
-        </div>
-        <p id="status-msg" style="font-size:11px; color: var(--warning-color); margin-top: 8px; text-align: center;"></p>
+  <div class="panel" id="settingsPanel">
+    <div class="input-group">
+      <label>Primär accentfärg</label>
+      <input type="color" id="cfgColor" value="#3b82f6" onchange="changeColor(this.value)">
     </div>
+    <div class="input-group">
+      <label>Klistra in iCal / .ics Data</label>
+      <textarea id="icsInput" rows="5" placeholder="BEGIN:VCALENDAR..."></textarea>
+    </div>
+    <div style="display:flex; justify-content: space-between;">
+      <button class="btn btn-primary" onclick="parseICS()">Importera iCal</button>
+      <button class="btn btn-danger" onclick="clearData()">Töm all data</button>
+    </div>
+  </div>
 
-    <!-- Vy-väljare -->
-    <div class="view-switcher">
-        <button id="btn-list" class="view-btn active" onclick="switchView('list')">Kommande</button>
-        <button id="btn-calendar" class="view-btn" onclick="switchView('calendar')">Månad</button>
+  <div id="listView" class="list-view"></div>
+  <div id="calView" style="display:none;">
+    <div style="display:flex; justify-content: space-between; align-items:center; margin-bottom:12px;">
+      <button class="btn" onclick="prevMonth()">&lt;</button>
+      <span id="calMonthTitle" style="font-weight:600; font-size:13px;"></span>
+      <button class="btn" onclick="nextMonth()">&gt;</button>
     </div>
-
-    <!-- Listvy -->
-    <div id="list-view">
-        <!-- JS fyller på här -->
-    </div>
-
-    <!-- Kalendervy -->
-    <div id="calendar-view">
-        <div id="calendar"></div>
-    </div>
+    <div class="cal-grid" id="calGrid"></div>
+  </div>
 </main>
 
-<!-- Modal för redigering -->
-<div class="modal-overlay" id="edit-modal">
-    <div class="modal-content">
-        <h2>Redigera Tenta</h2>
-        <input type="hidden" id="edit-id">
-        <div class="form-group">
-            <label>Titel</label>
-            <input type="text" id="edit-summary" class="form-control">
-        </div>
-        <div class="row">
-            <div class="form-group" style="flex:1;">
-                <label>Startdatum</label>
-                <input type="datetime-local" id="edit-start" class="form-control">
-            </div>
-        </div>
-        <div class="form-group">
-            <label>Plats / Info</label>
-            <input type="text" id="edit-location" class="form-control">
-        </div>
-        <div class="modal-actions">
-            <button class="btn-modal btn-cancel" onclick="closeModal()">Avbryt</button>
-            <button class="btn-modal btn-delete" onclick="deleteExam()">Ta bort</button>
-            <button class="btn-modal btn-save" onclick="saveExam()">Spara</button>
-        </div>
+<div class="modal-overlay" id="editModal">
+  <div class="modal">
+    <h2>Redigera Examination</h2>
+    <input type="hidden" id="editId">
+    <div class="input-group">
+      <label>Titel</label>
+      <input type="text" id="editTitle">
     </div>
+    <div class="input-group">
+      <label>Datum & Tid</label>
+      <input type="datetime-local" id="editDate">
+    </div>
+    <div class="input-group">
+      <label>Plats / Sal</label>
+      <input type="text" id="editLoc">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-danger" onclick="deleteExam()">Radera</button>
+      <button class="btn" onclick="closeModal()">Avbryt</button>
+      <button class="btn btn-primary" onclick="saveExam()">Spara</button>
+    </div>
+  </div>
 </div>
 
-<!-- Bibliotek -->
-<script src='https://cdn.jsdelivr.net/npm/@fullcalendar/core@4.4.0/main.min.js'></script>
-<script src='https://cdn.jsdelivr.net/npm/@fullcalendar/daygrid@4.4.0/main.min.js'></script>
-<script src='https://cdn.jsdelivr.net/npm/@fullcalendar/interaction@4.4.0/main.min.js'></script>
-<script src='https://cdn.jsdelivr.net/npm/@fullcalendar/core@4.4.0/locales/sv
+<script>
+  let exams = JSON.parse(localStorage.getItem('exams') || '[]');
+  let calDate = new Date();
+
+  function save() {
+    localStorage.setItem('exams', JSON.stringify(exams));
+    render();
+  }
+
+  function changeColor(c) {
+    document.documentElement.style.setProperty('--primary', c);
+    localStorage.setItem('theme_color', c);
+    render();
+  }
+
+  const savedColor = localStorage.getItem('theme_color');
+  if(savedColor) {
+    document.documentElement.style.setProperty('--primary', savedColor);
+    document.getElementById('cfgColor').value = savedColor;
+  }
+
+  function toggleSettings() {
+    document.getElementById('settingsPanel').classList.toggle('open');
+  }
+
+  function setTab(tab) {
+    document.getElementById('tabList').classList.toggle('active', tab === 'list');
+    document.getElementById('tabCal').classList.toggle('active', tab === 'cal');
+    document.getElementById('listView').style.display = tab === 'list' ? 'flex' : 'none';
+    document.getElementById('calView').style.display = tab === 'cal' ? 'block' : 'none';
+    render();
+  }
+
+  function parseICS() {
+    const raw = document.getElementById('icsInput').value;
+    if(!raw) return alert('Klistra in giltig ICS-data först');
+    try {
+      const parsed = ICAL.parse(raw);
+      const comp = new ICAL.Component(parsed);
+      const vevents = comp.getAllSubcomponents('vevent');
+      let count = 0;
+      vevents.forEach(v => {
+        const ev = new ICAL.Event(v);
+        exams.push({
+          id: '_' + Math.random().toString(36).substr(2, 9),
+          title: ev.summary || 'Examination',
+          date: ev.startDate.toJSDate().toISOString(),
+          location: ev.location || '–'
+        });
+        count++;
+      });
+      document.getElementById('icsInput').value = '';
+      toggleSettings();
+      save();
+      alert(`Importerade ${count} händelser.`);
+    } catch(e) {
+      alert('Kunde inte läsa iCal-data: ' + e.message);
+    }
+  }
+
+  function renderList() {
+    const container = document.getElementById('listView');
+    container.innerHTML = '';
+    const sorted = [...exams].sort((a,b) => new Date(a.date) - new Date(b.date));
+    if(sorted.length === 0) {
+      container.innerHTML = '<div style="text-align:center; padding:40px; color:var(--text-muted); font-size:13px;">Inga examinationer inlagda än.</div>';
+      return;
+    }
+    sorted.forEach(ex => {
+      const d = new Date(ex.date);
+      const div = document.createElement('div');
+      div.className = 'exam-item';
+      div.onclick = () => openModal(ex.id);
+      div.innerHTML = `
+        <div>
+          <div class="exam-title">${ex.title}</div>
+          <div class="exam-sub">Sal: ${ex.location}</div>
+        </div>
+        <div class="exam-date">
+          <div>${d.toLocaleDateString('sv-SE', { weekday:'short', day:'numeric', month:'short' })}</div>
+          <div style="color:var(--text-muted)">${d.toLocaleTimeString('sv-SE', { hour:'2-digit', minute:'2-digit' })}</div>
+        </div>
+      `;
+      container.appendChild(div);
+    });
+  }
+
+  function renderCal() {
+    const grid = document.getElementById('calGrid');
+    grid.innerHTML = '';
+    const y = calDate.getFullYear();
+    const m = calDate.getMonth();
+    document.getElementById('calMonthTitle').innerText = new Date(y, m).toLocaleDateString('sv-SE', { month:'long', year:'numeric' }).toUpperCase();
+    
+    ['Mån','Tis','Ons','Tor','Fre','Lör','Sön'].forEach(d => {
+      grid.innerHTML += `<div class="cal-header">${d}</div>`;
+    });
+
+    const firstDay = (new Date(y, m, 1).getDay() + 6) % 7;
+    const daysInMonth = new Date(y, m + 1, 0).getDate();
+
+    for(let i = 0; i < firstDay; i++) {
+      grid.innerHTML += '<div class="cal-cell empty"></div>';
+    }
+
+    for(let day = 1; day <= daysInMonth; day++) {
+      const cell = document.createElement('div');
+      cell.className = 'cal-cell';
+      cell.innerHTML = `<span>${day}</span>`;
+      
+      const dayStr = `${y}-${String(m+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+      exams.filter(e => e.date.startsWith(dayStr)).forEach(e => {
+        const pill = document.createElement('div');
+        pill.className = 'cal-pill';
+        pill.innerText = e.title;
+        pill.onclick = (ev) => { ev.stopPropagation(); openModal(e.id); };
+        cell.appendChild(pill);
+      });
+      grid.appendChild(cell);
+    }
+  }
+
+  function prevMonth() { calDate.setMonth(calDate.getMonth() - 1); renderCal(); }
+  function nextMonth() { calDate.setMonth(calDate.getMonth() + 1); renderCal(); }
+
+  function render() {
+    renderList();
+    renderCal();
+  }
+
+  function openModal(id) {
+    const ex = exams.find(e => e.id === id);
+    if(!ex) return;
+    document.getElementById('editId').value = ex.id;
+    document.getElementById('editTitle').value = ex.title;
+    const d = new Date(ex.date);
+    d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+    document.getElementById('editDate').value = d.toISOString().slice(0,16);
+    document.getElementById('editLoc').value = ex.location;
+    document.getElementById('editModal').classList.add('open');
+  }
+
+  function closeModal() {
+    document.getElementById('editModal').classList.remove('open');
+  }
+
+  function saveExam() {
+    const id = document.getElementById('editId').value;
+    const ex = exams.find(e => e.id === id);
+    if(ex) {
+      ex.title = document.getElementById('editTitle').value;
+      ex.date = new Date(document.getElementById('editDate').value).toISOString();
+      ex.location = document.getElementById('editLoc').value;
+      save();
+      closeModal();
+    }
+  }
+
+  function deleteExam() {
+    const id = document.getElementById('editId').value;
+    exams = exams.filter(e => e.id !== id);
+    save();
+    closeModal();
+  }
+
+  function clearData() {
+    if(confirm('Vill du rensa alla sparade tentor?')) {
+      exams = [];
+      save();
+      toggleSettings();
+    }
+  }
+
+  render();
+</script>
+</body>
+</html>
+// här är koden färdig på den absolut sista raden av koden varje gång.
